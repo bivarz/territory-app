@@ -1,0 +1,68 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Dark Theme */
+:root[data-theme="dark"] {
+  --color-bg: #282a36;
+  --color-bg-secondary: #1e1f29;
+  --color-surface: #343746;
+  --color-border: #44475a;
+  --color-text: #f8f8f2;
+  --color-text-muted: #b1b1c1;
+  --color-accent: #bd93f9;
+  --color-accent-hover: #c9a3ff;
+  --color-success: #50fa7b;
+  --color-error: #ff5555;
+  --color-warning: #f1fa8c;
+  --color-info: #8be9fd;
+}
+
+/* Light Theme */
+:root[data-theme="light"] {
+  --color-bg: #f7f8fa;
+  --color-bg-secondary: #ffffff;
+  --color-surface: #edeef2;
+  --color-border: #d4d7e1;
+  --color-text: #2f2f3a;
+  --color-text-muted: #6f7380;
+  --color-accent: #7c4dff;
+  --color-accent-hover: #8f66ff;
+  --color-success: #2ebd6b;
+  --color-error: #e53935;
+  --color-warning: #ffca28;
+  --color-info: #29b6f6;
+}
+
+/* Default to light theme */
+:root {
+  color-scheme: light;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  transition: background-color 0.3s ease, color 0.3s ease;
+  font-size: 14px;
+}
+
+#root {
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Mobile first - base styles já são para mobile */
+/* Media queries para telas maiores */
+@media (min-width: 768px) {
+  body {
+    font-size: 16px;
+  }
+}

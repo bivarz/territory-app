@@ -1,0 +1,40 @@
+.edit-mode-button {
+  background: var(--color-bg-secondary);
+  border: 2px solid var(--color-border);
+  border-radius: 6px;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  color: var(--color-text);
+}
+
+@media (min-width: 768px) {
+  .edit-mode-button {
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+  }
+}
+
+.edit-mode-button:hover {
+  background: var(--color-surface);
+  border-color: var(--color-accent);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.edit-mode-button.active {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: white;
+}
+
+.edit-mode-button.active:hover {
+  background: var(--color-accent-hover);
+}
