@@ -85,71 +85,43 @@ export default function LogsTab({
         ? formatDateOnly(log.finalizado.data)
         : "";
 
-      // Primeira linha: nome do usuário (colSpan: 2 para cada grupo)
+      // Estrutura da tabela (baseada no cabeçalho):
+      // Cabeçalho linha 1: Terr. n.º (rowSpan: 2) | Última data (rowSpan: 2) | Designado para (colSpan: 2) x 4
+      // Cabeçalho linha 2: Data da designação | Data da conclusão (repetido 4x)
+      // Total: 10 colunas visuais (2 fixas com rowSpan: 2 + 8 de grupos com colSpan: 2)
+
+      // IMPORTANTE: No autoTable, quando uma célula tem rowSpan: 2, ela ocupa 2 linhas.
+      // Na segunda linha, não incluímos essas células novamente.
+      // Todas as linhas devem ter o mesmo número de células base (10 no total).
+
+      // Primeira linha de dados: nome do usuário acima das datas
+      // Estrutura: [rowSpan: 2, rowSpan: 2, colSpan: 2, colSpan: 2, colSpan: 2, colSpan: 2] = 6 células que ocupam 10 colunas
       tableData.push([
-        { content: quadraNum, rowSpan: 2, styles: { valign: "middle" } },
+        { content: quadraNum, rowSpan: 2, styles: { valign: "middle" } }, // Coluna 0 (ocupa linhas 1-2)
         {
           content: ultimaDataConcluida,
           rowSpan: 2,
           styles: { valign: "middle" },
-        },
-        { content: "", colSpan: 2 }, // Designado para 1 (nome - vazio por enquanto)
-        { content: "", colSpan: 2 }, // Designado para 2 (nome - vazio por enquanto)
-        { content: "", colSpan: 2 }, // Designado para 3 (nome - vazio por enquanto)
-        { content: "", colSpan: 2 }, // Designado para 4 (nome - vazio por enquanto)
+        }, // Coluna 1 (ocupa linhas 1-2)
+        { content: "", colSpan: 2 }, // Colunas 2-3: Designado para 1 (nome - vazio por enquanto)
+        { content: "", colSpan: 2 }, // Colunas 4-5: Designado para 2 (nome - vazio por enquanto)
+        { content: "", colSpan: 2 }, // Colunas 6-7: Designado para 3 (nome - vazio por enquanto)
+        { content: "", colSpan: 2 }, // Colunas 8-9: Designado para 4 (nome - vazio por enquanto)
       ]);
 
-      // Segunda linha: datas
+      // Segunda linha de dados: apenas as datas
+      // IMPORTANTE: Não incluímos as células com rowSpan: 2 (colunas 0 e 1) nesta linha
+      // O autoTable automaticamente mescla essas células da linha anterior
+      // Estrutura: [8 células de dados] = 8 células que ocupam as colunas 2-9
       tableData.push([
-        dataDesignacao1, // Data da designação 1
-        dataConclusao1, // Data da conclusão 1
-        "", // Data da designação 2
-        "", // Data da conclusão 2
-        "", // Data da designação 3
-        "", // Data da conclusão 3
-        "", // Data da designação 4
-        "", // Data da conclusão 4
-      ]);
-
-      // Adiciona 2 grupos de linhas vazias adicionais para cada território (para preenchimento futuro)
-      // Terceiro grupo
-      tableData.push([
-        { content: "", rowSpan: 2, styles: { valign: "middle" } },
-        { content: "", rowSpan: 2, styles: { valign: "middle" } },
-        { content: "", colSpan: 2 }, // Designado para 1
-        { content: "", colSpan: 2 }, // Designado para 2
-        { content: "", colSpan: 2 }, // Designado para 3
-        { content: "", colSpan: 2 }, // Designado para 4
-      ]);
-      tableData.push([
-        "", // Data da designação 1
-        "", // Data da conclusão 1
-        "", // Data da designação 2
-        "", // Data da conclusão 2
-        "", // Data da designação 3
-        "", // Data da conclusão 3
-        "", // Data da designação 4
-        "", // Data da conclusão 4
-      ]);
-
-      // Quarto grupo
-      tableData.push([
-        { content: "", rowSpan: 2, styles: { valign: "middle" } },
-        { content: "", rowSpan: 2, styles: { valign: "middle" } },
-        { content: "", colSpan: 2 }, // Designado para 1
-        { content: "", colSpan: 2 }, // Designado para 2
-        { content: "", colSpan: 2 }, // Designado para 3
-        { content: "", colSpan: 2 }, // Designado para 4
-      ]);
-      tableData.push([
-        "", // Data da designação 1
-        "", // Data da conclusão 1
-        "", // Data da designação 2
-        "", // Data da conclusão 2
-        "", // Data da designação 3
-        "", // Data da conclusão 3
-        "", // Data da designação 4
-        "", // Data da conclusão 4
+        dataDesignacao1, // Coluna 2: Data da designação 1 (grupo 1)
+        dataConclusao1, // Coluna 3: Data da conclusão 1 (grupo 1)
+        "", // Coluna 4: Data da designação 2 (grupo 2)
+        "", // Coluna 5: Data da conclusão 2 (grupo 2)
+        "", // Coluna 6: Data da designação 3 (grupo 3)
+        "", // Coluna 7: Data da conclusão 3 (grupo 3)
+        "", // Coluna 8: Data da designação 4 (grupo 4)
+        "", // Coluna 9: Data da conclusão 4 (grupo 4)
       ]);
     });
 

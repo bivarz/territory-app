@@ -184,7 +184,28 @@ function QuadraMarkers({
   }>;
   onPolygonClick: (featureId: string) => void;
 }) {
+  const map = useMap();
+  const [currentZoom, setCurrentZoom] = useState(map.getZoom());
   const iconsRef = useRef<Map<string, L.DivIcon>>(new Map());
+  const MAX_ZOOM = 18;
+
+  // Monitora mudanças no zoom
+  useEffect(() => {
+    const updateZoom = () => {
+      setCurrentZoom(map.getZoom());
+    };
+
+    map.on("zoomend", updateZoom);
+    map.on("zoom", updateZoom);
+
+    // Atualiza o zoom inicial
+    updateZoom();
+
+    return () => {
+      map.off("zoomend", updateZoom);
+      map.off("zoom", updateZoom);
+    };
+  }, [map]);
 
   // Cria ou atualiza ícones apenas quando necessário (baseado em featureId e quadraNumber)
   useEffect(() => {
@@ -210,6 +231,11 @@ function QuadraMarkers({
       }
     });
   }, [polygonCenters]);
+
+  // Só renderiza os marcadores se o zoom estiver no máximo
+  if (currentZoom < MAX_ZOOM) {
+    return null;
+  }
 
   return (
     <>
@@ -429,7 +455,7 @@ export default function MapComponent({
               layer.setStyle({
                 fillColor: colors.fill,
                 color: isHighlighted ? "#fbbf24" : colors.stroke, // Amarelo para destacar
-                weight: isHighlighted ? 6 : isEditMode ? 3 : 2,
+                weight: isHighlighted ? 4 : isEditMode ? 3 : 2,
                 opacity: 1,
                 fillOpacity: isHighlighted ? 0.8 : isEditMode ? 0.5 : 0.7,
                 dashArray: isEditMode ? "5, 5" : undefined,
