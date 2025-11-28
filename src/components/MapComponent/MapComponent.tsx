@@ -8,7 +8,7 @@ import {
   useMap,
 } from "react-leaflet";
 import L from "leaflet";
-import { GeoJSONData, PolygonStatus, PolygonFeature } from "../../App";
+import { GeoJSONData, PolygonStatus, PolygonFeature } from "../../types/polygon";
 import initialGeoJsonData from "../../data/dormentes-blocks.json";
 import "leaflet/dist/leaflet.css";
 import "./MapComponent.css";

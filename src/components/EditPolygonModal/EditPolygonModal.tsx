@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { X } from 'lucide-react'
-import { PolygonFeature } from '../../App'
+import { PolygonFeature } from '../../types/polygon'
 import './EditPolygonModal.css'
 
 interface EditPolygonModalProps {

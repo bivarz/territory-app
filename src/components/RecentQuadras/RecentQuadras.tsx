@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { MapPin } from "lucide-react";
 import { QuadraLog } from "../../types/logs";
-import { GeoJSONData } from "../../App";
+import { GeoJSONData } from "../../types/polygon";
 import { formatShortDate } from "../../utils/dateFormatter";
 import "./RecentQuadras.css";
 

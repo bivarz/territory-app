@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { X, Search as SearchIcon } from "lucide-react";
-import { PolygonFeature, GeoJSONData } from "../../App";
+import { PolygonFeature, GeoJSONData } from "../../types/polygon";
 import "./SearchModal.css";
 
 type TerritoryType = "cidade" | "bairro" | "distrito" | "todos";
