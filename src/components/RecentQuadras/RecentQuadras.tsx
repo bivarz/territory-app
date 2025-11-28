@@ -1,8 +1,8 @@
 import { useMemo } from "react";
 import { MapPin } from "lucide-react";
-import { QuadraLog } from "../types/logs";
-import { GeoJSONData } from "../App";
-import { formatShortDate } from "../utils/dateFormatter";
+import { QuadraLog } from "../../types/logs";
+import { GeoJSONData } from "../../App";
+import { formatShortDate } from "../../utils/dateFormatter";
 import "./RecentQuadras.css";
 
 interface RecentQuadrasProps {
@@ -63,3 +63,4 @@ export default function RecentQuadras({
     </div>
   );
 }
+

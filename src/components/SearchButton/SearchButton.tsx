@@ -16,3 +16,4 @@ export default function SearchButton({ onClick }: SearchButtonProps) {
     </button>
   );
 }
+

@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { FileText, Trash2 } from "lucide-react";
-import { QuadraLog, StatusChangeLog } from "../types/logs";
-import { getStatusLabel, formatDateOnly } from "../utils/dateFormatter";
+import { QuadraLog, StatusChangeLog } from "../../types/logs";
+import { getStatusLabel, formatDateOnly } from "../../utils/dateFormatter";
 import { jsPDF } from "jspdf";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore - jspdf-autotable não tem tipos TypeScript completos
@@ -315,3 +315,4 @@ export default function LogsTab({
     </div>
   );
 }
+

@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { X } from 'lucide-react'
-import { PolygonFeature } from '../App'
+import { PolygonFeature } from '../../App'
 import './EditPolygonModal.css'
 
 interface EditPolygonModalProps {
@@ -10,6 +10,21 @@ interface EditPolygonModalProps {
   onSave: (updatedPolygon: PolygonFeature) => void
 }
 
+// Funções utilitárias para localStorage
+const STORAGE_PREFIX = 'polygon-'
+const STORAGE_SUFFIX = '-properties'
+
+const saveToLocalStorage = (polygonId: string, properties: Record<string, any>) => {
+  const key = `${STORAGE_PREFIX}${polygonId}${STORAGE_SUFFIX}`
+  localStorage.setItem(key, JSON.stringify(properties))
+}
+
+const loadFromLocalStorage = (polygonId: string): Record<string, any> | null => {
+  const key = `${STORAGE_PREFIX}${polygonId}${STORAGE_SUFFIX}`
+  const data = localStorage.getItem(key)
+  return data ? JSON.parse(data) : null
+}
+
 export default function EditPolygonModal({
   polygon,
   isOpen,
@@ -17,37 +32,98 @@ export default function EditPolygonModal({
   onSave,
 }: EditPolygonModalProps) {
   const [formData, setFormData] = useState<Record<string, any>>({})
+  const [isAddingProperty, setIsAddingProperty] = useState(false)
+  const [newPropertyKey, setNewPropertyKey] = useState('')
+  const formDataRef = useRef<Record<string, any>>({})
 
   useEffect(() => {
     if (polygon) {
-      setFormData(polygon.properties)
+      const originalProps = { ...polygon.properties }
+      const savedProps = loadFromLocalStorage(polygon.properties.id)
+      
+      // Mescla: dados originais + dados salvos (savedProps sobrescreve)
+      const mergedProps = savedProps 
+        ? { ...originalProps, ...savedProps }
+        : originalProps
+      
+      setFormData(mergedProps)
+      formDataRef.current = mergedProps
     }
   }, [polygon])
+
+  // Sincroniza o ref sempre que formData mudar
+  useEffect(() => {
+    formDataRef.current = formData
+  }, [formData])
 
   if (!isOpen || !polygon) return null
 
   const handleChange = (key: string, value: any) => {
-    setFormData((prev) => ({
-      ...prev,
-      [key]: value,
-    }))
+    setFormData((prev) => {
+      const updated = { ...prev, [key]: value }
+      formDataRef.current = updated
+      return updated
+    })
   }
 
   const handleSave = () => {
-    const updatedPolygon: PolygonFeature = {
-      ...polygon,
-      properties: {
-        ...formData,
-      } as PolygonFeature['properties'],
-    }
-    onSave(updatedPolygon)
+    // Usa o ref que está sempre sincronizado com o estado mais recente
+    const currentFormData = formDataRef.current
+    
+    // Cria uma cópia para garantir que todas as propriedades sejam incluídas
+    const updatedProperties = { ...currentFormData }
+    
+    // Salva no localStorage
+    saveToLocalStorage(polygon.properties.id, updatedProperties)
+    
+    // NÃO chama onSave - não atualiza o JSON principal
+    // onSave(updatedPolygon) // Comentado - salva apenas no localStorage
+    
     onClose()
   }
 
   const handleAddProperty = () => {
-    const key = prompt('Nome da propriedade:')
-    if (key && key.trim()) {
-      handleChange(key.trim(), '')
+    setIsAddingProperty(true)
+  }
+
+  const handleConfirmAddProperty = () => {
+    if (newPropertyKey && newPropertyKey.trim()) {
+      const trimmedKey = newPropertyKey.trim()
+      
+      // Verifica se não é uma propriedade reservada
+      if (['id', 'nome', 'status'].includes(trimmedKey)) {
+        alert('Esta propriedade é reservada e não pode ser adicionada!')
+        return
+      }
+      
+      // Adiciona a propriedade diretamente ao formData usando callback para garantir estado atualizado
+      setFormData((prev) => {
+        // Verifica se a chave já existe no estado atual
+        if (prev[trimmedKey] !== undefined) {
+          alert('Esta propriedade já existe!')
+          return prev
+        }
+        
+        const updated = { ...prev, [trimmedKey]: '' }
+        formDataRef.current = updated
+        return updated
+      })
+      
+      setNewPropertyKey('')
+      setIsAddingProperty(false)
+    }
+  }
+
+  const handleCancelAddProperty = () => {
+    setNewPropertyKey('')
+    setIsAddingProperty(false)
+  }
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleConfirmAddProperty()
+    } else if (e.key === 'Escape') {
+      handleCancelAddProperty()
     }
   }
 
@@ -58,6 +134,7 @@ export default function EditPolygonModal({
     }
     const newData = { ...formData }
     delete newData[key]
+    formDataRef.current = newData
     setFormData(newData)
   }
 
@@ -107,14 +184,44 @@ export default function EditPolygonModal({
           <div className="properties-section">
             <div className="section-header">
               <h3>Outras Propriedades</h3>
-              <button
-                className="add-property-btn"
-                onClick={handleAddProperty}
-                type="button"
-              >
-                + Adicionar
-              </button>
+              {!isAddingProperty && (
+                <button
+                  className="add-property-btn"
+                  onClick={handleAddProperty}
+                  type="button"
+                >
+                  + Adicionar
+                </button>
+              )}
             </div>
+
+            {isAddingProperty && (
+              <div className="property-row new-property-row">
+                <input
+                  type="text"
+                  value={newPropertyKey}
+                  onChange={(e) => setNewPropertyKey(e.target.value)}
+                  onKeyDown={handleKeyPress}
+                  className="property-key"
+                  placeholder="Nome da propriedade"
+                  autoFocus
+                />
+                <button
+                  className="confirm-add-btn"
+                  onClick={handleConfirmAddProperty}
+                  type="button"
+                >
+                  ✓
+                </button>
+                <button
+                  className="cancel-add-btn"
+                  onClick={handleCancelAddProperty}
+                  type="button"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
 
             {Object.entries(formData)
               .filter(([key]) => !['id', 'nome', 'status'].includes(key))
@@ -127,6 +234,7 @@ export default function EditPolygonModal({
                       const newData = { ...formData }
                       delete newData[key]
                       newData[e.target.value] = value
+                      formDataRef.current = newData
                       setFormData(newData)
                     }}
                     className="property-key"

@@ -1,5 +1,5 @@
-.gps-button {
-  background-color: var(--color-bg-secondary);
+.search-button {
+  background: var(--color-bg-secondary);
   border: 2px solid var(--color-border);
   border-radius: 6px;
   width: 36px;
@@ -15,26 +15,16 @@
 }
 
 @media (min-width: 768px) {
-  .gps-button {
+  .search-button {
     width: 44px;
     height: 44px;
     border-radius: 8px;
   }
 }
 
-.gps-button:hover {
+.search-button:hover {
   background: var(--color-surface);
-  border-color: var(--color-success);
+  border-color: var(--color-accent);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.gps-button.active {
-  background-color: var(--color-success);
-  color: white;
-  border-color: var(--color-success);
-}
-
-.gps-button.active:hover {
-  background-color: var(--color-success);
-  opacity: 0.9;
-}

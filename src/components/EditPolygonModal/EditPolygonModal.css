@@ -198,6 +198,47 @@
   opacity: 0.9;
 }
 
+.new-property-row {
+  margin-bottom: 12px;
+  padding: 8px;
+  background: var(--color-bg);
+  border: 2px dashed var(--color-border);
+  border-radius: 6px;
+}
+
+.confirm-add-btn,
+.cancel-add-btn {
+  background: none;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+}
+
+.confirm-add-btn {
+  color: #22c55e;
+  background: rgba(34, 197, 94, 0.1);
+}
+
+.confirm-add-btn:hover {
+  background: rgba(34, 197, 94, 0.2);
+}
+
+.cancel-add-btn {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.cancel-add-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+}
+
 .modal-footer {
   display: flex;
   justify-content: flex-end;
@@ -241,3 +282,4 @@
 .btn-save:hover {
   background: var(--color-accent-hover);
 }
+
