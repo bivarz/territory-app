@@ -156,12 +156,20 @@ function MapZoomController({
         bounds = calculateBounds(geoJsonData.features);
       }
 
+      // Calcula o zoom para 83% do máximo
+      const minZoom = map.getMinZoom();
+      const maxZoom = map.getMaxZoom();
+      const zoomRange = maxZoom - minZoom;
+      const targetZoom = minZoom + zoomRange * 0.83;
+
       if (bounds) {
-        // Ajusta o zoom para mostrar os polígonos com padding
-        map.fitBounds(bounds, {
-          padding: [50, 50], // Padding em pixels
-          maxZoom: 18, // Limite máximo de zoom
-        });
+        // Centraliza o mapa no centro dos bounds
+        const center = bounds.getCenter();
+        map.setView(center, targetZoom, { animate: false });
+        hasInitialized.current = true;
+      } else {
+        // Se não houver bounds, define o zoom para 83% diretamente
+        map.setZoom(targetZoom);
         hasInitialized.current = true;
       }
     }, 100);
@@ -304,6 +312,37 @@ function PolygonFocusController({
   }, [polygon, map]);
 
   return null;
+}
+
+// Componente interno para exibir a porcentagem de zoom
+function ZoomPercentage() {
+  const map = useMap();
+  const [zoomPercentage, setZoomPercentage] = useState(0);
+
+  useEffect(() => {
+    const updateZoomPercentage = () => {
+      const currentZoom = map.getZoom();
+      const minZoom = map.getMinZoom();
+      const maxZoom = map.getMaxZoom();
+      const zoomRange = maxZoom - minZoom;
+      const currentRange = currentZoom - minZoom;
+      const percentage = zoomRange > 0 ? (currentRange / zoomRange) * 100 : 0;
+      setZoomPercentage(Math.round(percentage));
+    };
+
+    map.on("zoomend", updateZoomPercentage);
+    map.on("zoom", updateZoomPercentage);
+
+    // Atualiza o zoom inicial
+    updateZoomPercentage();
+
+    return () => {
+      map.off("zoomend", updateZoomPercentage);
+      map.off("zoom", updateZoomPercentage);
+    };
+  }, [map]);
+
+  return <div className="zoom-percentage">{zoomPercentage}%</div>;
 }
 
 // Componente interno para gerenciar a localização GPS
@@ -536,12 +575,13 @@ export default function MapComponent({
   return (
     <MapContainer
       center={[-8.44, -40.77]} // Centro baseado nos polígonos fornecidos (será ajustado pelo MapZoomController)
-      zoom={16} // Zoom inicial mais próximo (será ajustado pelo MapZoomController)
+      zoom={15} // Zoom inicial (será ajustado para 83% pelo MapZoomController)
       style={{ height: "100%", width: "100%" }}
     >
       <MapZoomController geoJsonData={dataToUse} />
       <GPSController isActive={isGPSActive} onLocationUpdate={setGpsPosition} />
       <PolygonFocusController polygon={polygonToFocus} />
+      <ZoomPercentage />
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
