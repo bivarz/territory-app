@@ -5,6 +5,8 @@
   flex-direction: column;
   background: var(--color-bg);
   color: var(--color-text);
+  overflow: hidden;
+  min-height: 0;
 }
 
 .logs-header {
@@ -14,6 +16,7 @@
   padding: 12px;
   border-bottom: 1px solid var(--color-border);
   background: var(--color-surface);
+  flex-shrink: 0;
 }
 
 .logs-header h2 {
@@ -99,7 +102,9 @@
 .logs-content {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 12px;
+  min-height: 0;
 }
 
 @media (min-width: 768px) {
