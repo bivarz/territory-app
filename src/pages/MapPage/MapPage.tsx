@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { Pencil, LogOut } from "lucide-react";
 import MapComponent from "../../components/MapComponent";
 import Menu from "../../components/Menu";
 import EditModeButton from "../../components/EditModeButton";
@@ -260,10 +261,12 @@ export default function MapPage() {
             onClick={() => navigate("/editor")}
             title="Editor de Quadras"
           >
-            Editor
+            <Pencil size={16} />
+            <span>Editor</span>
           </button>
           <button className="logout-button" onClick={handleLogout}>
-            Sair
+            <LogOut size={16} />
+            <span>Sair</span>
           </button>
         </div>
       </div>
@@ -331,4 +334,3 @@ export default function MapPage() {
     </div>
   );
 }
-

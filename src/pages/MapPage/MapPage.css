@@ -46,6 +46,10 @@
   transition: all 0.2s;
   background: var(--color-bg-secondary);
   color: var(--color-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 
 .nav-button:hover {
@@ -69,4 +73,3 @@
     font-size: 20px;
   }
 }
-

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { MapPin, Plus, Trash2, Save } from "lucide-react";
+import { MapPin, Plus, Trash2, Save, Map, LogOut } from "lucide-react";
 import "./EditorPage.css";
 
 export default function EditorPage() {
@@ -22,10 +22,12 @@ export default function EditorPage() {
             onClick={() => navigate("/mapas")}
             title="Voltar para Mapas"
           >
-            Mapas
+            <Map size={16} />
+            <span>Mapas</span>
           </button>
           <button className="logout-button" onClick={handleLogout}>
-            Sair
+            <LogOut size={16} />
+            <span>Sair</span>
           </button>
         </div>
       </div>
