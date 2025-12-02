@@ -76,16 +76,26 @@ export default function LoginPage() {
     }
   };
 
-  const usernameError = touched.username ? validateField("username", username) : "";
-  const passwordError = touched.password ? validateField("password", password) : "";
-  const isFormValid = !usernameError && !passwordError && username.trim() && password.trim();
+  const usernameError = touched.username
+    ? validateField("username", username)
+    : "";
+  const passwordError = touched.password
+    ? validateField("password", password)
+    : "";
+  // Botão desabilitado quando username ou password não estão preenchidos
+  const hasUsername = username.trim().length > 0;
+  const hasPassword = password.trim().length > 0;
+  const isFormValid =
+    hasUsername && hasPassword && !usernameError && !passwordError;
 
   return (
-    <div 
+    <div
       className="login-page"
-      style={{
-        '--bg': `url(${bg1})`
-      } as React.CSSProperties}
+      style={
+        {
+          "--bg": `url(${bg1})`,
+        } as React.CSSProperties
+      }
     >
       <div className="login-container">
         <div className="login-header">
@@ -176,14 +186,20 @@ export default function LoginPage() {
               <span className="checkbox-custom"></span>
               <span className="checkbox-text">Remember Me</span>
             </label>
-            <a href="#" className="forgot-password" onClick={(e) => e.preventDefault()}>
+            <a
+              href="#"
+              className="forgot-password"
+              onClick={(e) => e.preventDefault()}
+            >
               Forget Password?
             </a>
           </div>
 
           <button
             type="submit"
-            className={`login-button ${isLoading ? "loading" : ""} ${!isFormValid ? "disabled" : ""}`}
+            className={`login-button ${isLoading ? "loading" : ""} ${
+              !isFormValid ? "disabled" : ""
+            }`}
             disabled={isLoading || !isFormValid}
             aria-busy={isLoading}
           >
@@ -200,11 +216,17 @@ export default function LoginPage() {
 
         <div className="login-footer">
           <p className="signup-prompt">
-            New User? <a href="#" className="signup-link" onClick={(e) => e.preventDefault()}>Signup</a>
+            New User?{" "}
+            <a
+              href="#"
+              className="signup-link"
+              onClick={(e) => e.preventDefault()}
+            >
+              Signup
+            </a>
           </p>
         </div>
       </div>
     </div>
   );
 }
-

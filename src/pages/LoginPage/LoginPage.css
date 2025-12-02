@@ -2,12 +2,12 @@
 /* Clean minimal design following the reference pattern */
 .login-page {
   width: 100%;
-  min-height: 100vh;
-  min-height: 100dvh;
+  height: 100vh;
+  height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 16px;
+  padding: 0;
   box-sizing: border-box;
   position: relative;
   overflow: hidden;
@@ -55,16 +55,20 @@
 
 .login-container {
   background: var(--color-bg-secondary);
-  border-radius: 8px;
+  border-radius: 0;
   padding: 32px 24px;
   width: 100%;
+  height: 100%;
   max-width: 100%;
   box-sizing: border-box;
   position: relative;
   z-index: 10;
   backdrop-filter: blur(10px);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  overflow: visible;
+  box-shadow: none;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .login-header {
@@ -294,9 +298,16 @@
 }
 
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-4px); }
-  75% { transform: translateX(4px); }
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-4px);
+  }
+  75% {
+    transform: translateX(4px);
+  }
 }
 
 .login-button {
@@ -340,7 +351,7 @@
 
 .login-button:disabled,
 .login-button.disabled {
-  opacity: 1 !important;
+  opacity: 0.6 !important;
   cursor: not-allowed;
   transform: none;
   background: #7c4dff !important;
@@ -348,7 +359,8 @@
   color: #ffffff !important;
   border: 2px solid #7c4dff !important;
   visibility: visible !important;
-  box-shadow: 0 2px 8px rgba(124, 77, 255, 0.3) !important;
+  box-shadow: 0 2px 8px rgba(124, 77, 255, 0.2) !important;
+  pointer-events: none;
 }
 
 .login-button.loading {
@@ -397,12 +409,15 @@
 @media (min-width: 768px) {
   .login-page {
     padding: 40px 20px;
+    align-items: center;
+    justify-content: center;
   }
 
   .login-container {
     border-radius: 12px;
     padding: 48px 40px;
     max-width: 450px;
+    height: auto;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
 
@@ -440,4 +455,3 @@
     animation: none;
   }
 }
-
