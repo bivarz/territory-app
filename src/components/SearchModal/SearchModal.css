@@ -237,3 +237,41 @@
   font-size: 14px;
 }
 
+.search-hint {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.result-matched-fields {
+  margin-bottom: 8px;
+  padding: 4px 8px;
+  background: rgba(124, 77, 255, 0.1);
+  border-radius: 4px;
+}
+
+.result-matched-fields small {
+  color: var(--color-accent);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.result-property.matched {
+  background: rgba(124, 77, 255, 0.05);
+  padding: 4px 8px;
+  border-radius: 4px;
+  border-left: 3px solid var(--color-accent);
+}
+
+.result-property.matched .property-key {
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+.result-property.matched .property-value {
+  color: var(--color-text);
+  font-weight: 500;
+}
+
