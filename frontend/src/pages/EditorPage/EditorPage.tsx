@@ -1,15 +1,20 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapPin, Plus, Trash2, Save, Map, LogOut, CreditCard } from "lucide-react";
-import MapComponent from "../../components/MapComponent";
-import { GeoJSONData } from "../../types/polygon";
+import EditorMapComponent from "../../components/EditorMapComponent";
+import CreateCardModal from "../../components/CreateCardModal";
+import { GeoJSONData, PolygonFeature } from "../../types/polygon";
+import initialGeoJsonData from "../../data/dormentes-blocks.json";
 import "./EditorPage.css";
 
 export default function EditorPage() {
   const navigate = useNavigate();
   const [geoJsonData, setGeoJsonData] = useState<GeoJSONData | null>(null);
-  const [showMap, setShowMap] = useState(false);
   const [mapMode, setMapMode] = useState<'create' | 'edit' | null>(null);
+  const [isDrawingMode, setIsDrawingMode] = useState(false);
+  const [drawingType, setDrawingType] = useState<'card' | 'quadra' | null>(null);
+  const [drawnCoordinates, setDrawnCoordinates] = useState<number[][][] | undefined>();
+  const [showCreateCardModal, setShowCreateCardModal] = useState(false);
 
   // Verifica autenticação
   useEffect(() => {
@@ -19,6 +24,13 @@ export default function EditorPage() {
     }
   }, [navigate]);
 
+  // Carrega dados iniciais
+  useEffect(() => {
+    if (!geoJsonData) {
+      setGeoJsonData(initialGeoJsonData as GeoJSONData);
+    }
+  }, [geoJsonData]);
+
   const handleLogout = () => {
     localStorage.removeItem("isAuthenticated");
     localStorage.removeItem("username");
@@ -27,22 +39,48 @@ export default function EditorPage() {
 
   const handleCreateCard = () => {
     setMapMode('create');
-    setShowMap(true);
+    setIsDrawingMode(true);
+    setDrawingType('card');
+    setDrawnCoordinates(undefined);
   };
 
   const handleEditCard = () => {
     setMapMode('edit');
-    setShowMap(true);
+    setIsDrawingMode(false);
+    setDrawingType(null);
   };
 
-  const handleCloseMap = () => {
-    setShowMap(false);
+  const handleCreateQuadra = () => {
     setMapMode(null);
+    setIsDrawingMode(true);
+    setDrawingType('quadra');
+    setDrawnCoordinates(undefined);
   };
 
-  const handlePolygonClick = (featureId: string) => {
-    // Handler para cliques em polígonos no modo de edição
-    console.log("Polygon clicked:", featureId);
+  const handlePolygonDrawn = (coordinates: number[][][]) => {
+    setDrawnCoordinates(coordinates);
+    if (drawingType === 'card') {
+      setShowCreateCardModal(true);
+    }
+  };
+
+  const handlePolygonClick = (feature: PolygonFeature) => {
+    console.log("Polygon clicked:", feature.properties.id);
+  };
+
+  const handleSaveCard = (card: PolygonFeature) => {
+    if (geoJsonData) {
+      const updatedFeatures = [...geoJsonData.features, card];
+      setGeoJsonData({
+        ...geoJsonData,
+        features: updatedFeatures,
+      });
+    }
+    setShowCreateCardModal(false);
+    setIsDrawingMode(false);
+    setDrawingType(null);
+    setDrawnCoordinates(undefined);
+    setMapMode(null);
   };
 
   return (
@@ -84,7 +122,10 @@ export default function EditorPage() {
                 <MapPin size={20} />
                 <span>Editar Cartão</span>
               </button>
-              <button className="tool-button">
+              <button 
+                className={`tool-button ${drawingType === 'quadra' ? 'active' : ''}`}
+                onClick={handleCreateQuadra}
+              >
                 <Plus size={20} />
                 <span>Criar Quadra</span>
               </button>
@@ -92,16 +133,6 @@ export default function EditorPage() {
                 <Save size={20} />
                 <span>Salvar Alterações</span>
               </button>
-              {showMap && (
-                <button 
-                  className="tool-button"
-                  onClick={handleCloseMap}
-                  style={{ marginTop: '8px', backgroundColor: '#ef4444' }}
-                >
-                  <MapPin size={20} />
-                  <span>Fechar Mapa</span>
-                </button>
-              )}
             </div>
           </div>
 
@@ -116,28 +147,29 @@ export default function EditorPage() {
         </div>
 
         <div className="editor-main">
-          {showMap ? (
-            <MapComponent
-              geoJsonData={geoJsonData}
-              setGeoJsonData={setGeoJsonData}
-              onPolygonClick={handlePolygonClick}
-              isEditMode={mapMode === 'edit'}
-              isGPSActive={false}
-            />
-          ) : (
-            <div className="editor-placeholder">
-              <MapPin size={64} />
-              <h2>Editor de Quadras</h2>
-              <p>
-                Esta página será usada para criar, desenhar e definir quadras e
-                agrupamentos de quadras.
-              </p>
-              <p className="placeholder-hint">
-                Clique em "Criar Cartão" ou "Editar Cartão" para começar
-              </p>
-            </div>
-          )}
+          <EditorMapComponent
+            geoJsonData={geoJsonData}
+            onPolygonDrawn={handlePolygonDrawn}
+            isDrawingMode={isDrawingMode}
+            drawingType={drawingType}
+            isEditMode={mapMode === 'edit'}
+            onPolygonClick={handlePolygonClick}
+          />
         </div>
+
+        {showCreateCardModal && (
+          <CreateCardModal
+            isOpen={showCreateCardModal}
+            onClose={() => {
+              setShowCreateCardModal(false);
+              setIsDrawingMode(false);
+              setDrawingType(null);
+              setDrawnCoordinates(undefined);
+            }}
+            onSave={handleSaveCard}
+            drawnCoordinates={drawnCoordinates}
+          />
+        )}
       </div>
     </div>
   );
