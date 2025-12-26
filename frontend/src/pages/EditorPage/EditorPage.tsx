@@ -15,6 +15,8 @@ export default function EditorPage() {
   const [drawingType, setDrawingType] = useState<'card' | 'quadra' | null>(null);
   const [drawnCoordinates, setDrawnCoordinates] = useState<number[][][] | undefined>();
   const [showCreateCardModal, setShowCreateCardModal] = useState(false);
+  const [selectedQuadraIds, setSelectedQuadraIds] = useState<Set<string>>(new Set());
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
 
   // Verifica autenticação
   useEffect(() => {
@@ -39,15 +41,18 @@ export default function EditorPage() {
 
   const handleCreateCard = () => {
     setMapMode('create');
-    setIsDrawingMode(true);
-    setDrawingType('card');
-    setDrawnCoordinates(undefined);
+    setIsSelectionMode(true);
+    setIsDrawingMode(false);
+    setDrawingType(null);
+    setSelectedQuadraIds(new Set());
   };
 
   const handleEditCard = () => {
     setMapMode('edit');
+    setIsSelectionMode(false);
     setIsDrawingMode(false);
     setDrawingType(null);
+    setSelectedQuadraIds(new Set());
   };
 
   const handleCreateQuadra = () => {
@@ -65,7 +70,16 @@ export default function EditorPage() {
   };
 
   const handlePolygonClick = (feature: PolygonFeature) => {
+    if (isSelectionMode) {
+      // Selection is handled by EditorMapComponent
+      return;
+    }
     console.log("Polygon clicked:", feature.properties.id);
+  };
+
+  const handleSelectionChange = (selectedIds: Set<string>) => {
+    setSelectedQuadraIds(selectedIds);
+    // Não abre o modal automaticamente - usuário deve clicar no botão
   };
 
   const handleSaveCard = (card: PolygonFeature) => {
@@ -77,11 +91,46 @@ export default function EditorPage() {
       });
     }
     setShowCreateCardModal(false);
+    setIsSelectionMode(false);
     setIsDrawingMode(false);
     setDrawingType(null);
     setDrawnCoordinates(undefined);
+    setSelectedQuadraIds(new Set());
     setMapMode(null);
+    
+    alert('Cartão criado com sucesso!');
   };
+
+  // Get all quadra IDs that are already in cards
+  const getQuadrasInCards = (): Set<string> => {
+    if (!geoJsonData) return new Set();
+    
+    const quadrasInCards = new Set<string>();
+    
+    geoJsonData.features.forEach((feature) => {
+      // Check if this is a card
+      if (feature.properties.id.startsWith('card-')) {
+        // Get quadraIds from card properties
+        const quadraIds = feature.properties.quadraIds;
+        if (Array.isArray(quadraIds)) {
+          quadraIds.forEach((id: string) => {
+            quadrasInCards.add(id);
+          });
+        }
+      }
+    });
+    
+    return quadrasInCards;
+  };
+
+  const quadrasInCards = getQuadrasInCards();
+
+  // Get selected quadras from geoJsonData
+  const selectedQuadras: PolygonFeature[] = geoJsonData
+    ? geoJsonData.features.filter((f) => 
+        selectedQuadraIds.has(f.properties.id) && !f.properties.id.startsWith('card-')
+      )
+    : [];
 
   return (
     <div className="editor-page">
@@ -152,9 +201,97 @@ export default function EditorPage() {
             onPolygonDrawn={handlePolygonDrawn}
             isDrawingMode={isDrawingMode}
             drawingType={drawingType}
-            isEditMode={mapMode === 'edit'}
+            isEditMode={mapMode === 'edit' || isSelectionMode}
             onPolygonClick={handlePolygonClick}
+            selectedQuadraIds={selectedQuadraIds}
+            onSelectionChange={handleSelectionChange}
+            isSelectionMode={isSelectionMode}
+            unavailableQuadraIds={quadrasInCards}
           />
+          {/* Debug info */}
+          {process.env.NODE_ENV === 'development' && (
+            <div style={{
+              position: 'absolute',
+              top: 10,
+              right: 10,
+              background: 'rgba(0,0,0,0.7)',
+              color: 'white',
+              padding: '10px',
+              borderRadius: '5px',
+              fontSize: '12px',
+              zIndex: 1000,
+            }}>
+              <div>Selection Mode: {isSelectionMode ? 'ON' : 'OFF'}</div>
+              <div>Selected: {selectedQuadraIds.size}</div>
+              <div>Has Handler: {handleSelectionChange ? 'YES' : 'NO'}</div>
+            </div>
+          )}
+          
+          {isSelectionMode && (
+            <div className="selection-controls">
+              <div className="selection-info">
+                <h4>Selecionar Quadras</h4>
+                <p>
+                  <strong>{selectedQuadraIds.size}</strong> selecionada(s)
+                </p>
+                
+                {selectedQuadras.length > 0 && (
+                  <div className="selected-quadras-list">
+                    <p>Quadras:</p>
+                    <ul>
+                      {selectedQuadras.map((q) => (
+                        <li key={q.properties.id}>
+                          <span>{q.properties.nome || q.properties.id}</span>
+                          <button
+                            onClick={() => {
+                              const newSelection = new Set(selectedQuadraIds);
+                              newSelection.delete(q.properties.id);
+                              setSelectedQuadraIds(newSelection);
+                            }}
+                          >
+                            ×
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                
+                {quadrasInCards.size > 0 && (
+                  <p style={{ fontSize: '11px', color: '#ef4444', margin: '4px 0' }}>
+                    ⚠️ {quadrasInCards.size} já em cartões
+                  </p>
+                )}
+                
+                <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
+                  <button
+                    className="btn-cancel-selection"
+                    onClick={() => {
+                      setSelectedQuadraIds(new Set());
+                      setIsSelectionMode(false);
+                      setMapMode(null);
+                    }}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    className="btn-create-card"
+                    onClick={() => {
+                      if (selectedQuadraIds.size === 0) {
+                        alert('Por favor, selecione pelo menos uma quadra no mapa');
+                        return;
+                      }
+                      setShowCreateCardModal(true);
+                    }}
+                    disabled={selectedQuadraIds.size === 0}
+                  >
+                    <CreditCard size={14} />
+                    Criar
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {showCreateCardModal && (
@@ -162,12 +299,10 @@ export default function EditorPage() {
             isOpen={showCreateCardModal}
             onClose={() => {
               setShowCreateCardModal(false);
-              setIsDrawingMode(false);
-              setDrawingType(null);
-              setDrawnCoordinates(undefined);
             }}
             onSave={handleSaveCard}
-            drawnCoordinates={drawnCoordinates}
+            selectedQuadras={selectedQuadras}
+            geoJsonData={geoJsonData}
           />
         )}
       </div>

@@ -1,59 +1,111 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
-import { PolygonFeature } from '../../types/polygon';
+import { PolygonFeature, GeoJSONData } from '../../types/polygon';
+import union from '@turf/union';
+import { Feature, Polygon } from '@turf/helpers';
 import './CreateCardModal.css';
 
 interface CreateCardModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (card: PolygonFeature) => void;
-  drawnCoordinates?: number[][][];
+  selectedQuadras: PolygonFeature[];
+  geoJsonData: GeoJSONData | null;
 }
 
 export default function CreateCardModal({
   isOpen,
   onClose,
   onSave,
-  drawnCoordinates,
+  selectedQuadras,
+  geoJsonData,
 }: CreateCardModalProps) {
-  const [cardNumber, setCardNumber] = useState('');
+  const [cardId, setCardId] = useState('');
   const [cardName, setCardName] = useState('');
+  const [bairro, setBairro] = useState('');
 
   if (!isOpen) return null;
 
   const handleSave = () => {
-    if (!cardNumber.trim() || !cardName.trim()) {
-      alert('Por favor, preencha o número e o nome do cartão');
+    if (!cardId.trim() || !cardName.trim() || !bairro.trim()) {
+      alert('Por favor, preencha o ID, nome e bairro do cartão');
       return;
     }
 
-    if (!drawnCoordinates || drawnCoordinates.length === 0) {
-      alert('Por favor, desenhe um polígono no mapa primeiro');
+    if (selectedQuadras.length === 0) {
+      alert('Por favor, selecione pelo menos uma quadra no mapa');
       return;
     }
 
+    // Unite selected quadras to create territory polygon
+    let territoryPolygon: Feature<Polygon> | null = null;
+    
+    if (selectedQuadras.length > 0) {
+      territoryPolygon = {
+        type: 'Feature',
+        properties: {},
+        geometry: selectedQuadras[0].geometry,
+      } as Feature<Polygon>;
+      
+      // Union all remaining quadras
+      for (let i = 1; i < selectedQuadras.length; i++) {
+        if (territoryPolygon) {
+          try {
+            const quadraFeature: Feature<Polygon> = {
+              type: 'Feature',
+              properties: {},
+              geometry: selectedQuadras[i].geometry,
+            };
+            
+            const unionResult = union(territoryPolygon, quadraFeature);
+            if (unionResult) {
+              territoryPolygon = unionResult;
+            }
+          } catch (err) {
+            console.error(`Error in union for quadra ${i + 1}:`, err);
+          }
+        }
+      }
+    }
+
+    if (!territoryPolygon) {
+      alert('Erro ao criar território. Tente novamente.');
+      return;
+    }
+
+    // Get quadra IDs and names
+    const quadraIds = selectedQuadras.map(q => q.properties.id);
+    const quadraNames = selectedQuadras
+      .map(q => q.properties.nome || q.properties.id)
+      .filter(Boolean);
+
+    // Create card with all required fields
     const newCard: PolygonFeature = {
       type: 'Feature',
       properties: {
-        id: `card-${Date.now()}`,
-        [`Cartão ${cardNumber}`]: cardName,
+        id: cardId.trim(),
+        nome: cardName.trim(),
+        bairro: bairro.trim(),
         status: 'nao_iniciado',
+        // Reference to quadras
+        quadraIds: quadraIds,
+        quadraNames: quadraNames,
+        totalQuadras: selectedQuadras.length,
       },
-      geometry: {
-        type: 'Polygon',
-        coordinates: drawnCoordinates,
-      },
+      geometry: territoryPolygon.geometry,
     };
 
     onSave(newCard);
-    setCardNumber('');
+    setCardId('');
     setCardName('');
+    setBairro('');
     onClose();
   };
 
   const handleCancel = () => {
-    setCardNumber('');
+    setCardId('');
     setCardName('');
+    setBairro('');
     onClose();
   };
 
@@ -69,12 +121,12 @@ export default function CreateCardModal({
 
         <div className="modal-body">
           <div className="form-group">
-            <label>Número do Cartão:</label>
+            <label>ID do Cartão:</label>
             <input
               type="text"
-              value={cardNumber}
-              onChange={(e) => setCardNumber(e.target.value)}
-              placeholder="Ex: 29"
+              value={cardId}
+              onChange={(e) => setCardId(e.target.value)}
+              placeholder="Ex: CARD-001"
             />
           </div>
 
@@ -88,9 +140,35 @@ export default function CreateCardModal({
             />
           </div>
 
-          {!drawnCoordinates && (
+          <div className="form-group">
+            <label>Bairro:</label>
+            <input
+              type="text"
+              value={bairro}
+              onChange={(e) => setBairro(e.target.value)}
+              placeholder="Ex: Centro"
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Quadras Selecionadas:</label>
+            <div className="selection-info">
+              <p>{selectedQuadras.length} quadra(s) selecionada(s)</p>
+              {selectedQuadras.length > 0 && (
+                <ul className="quadra-list">
+                  {selectedQuadras.map((q, idx) => (
+                    <li key={q.properties.id || idx}>
+                      {q.properties.nome || q.properties.id || `Quadra ${idx + 1}`}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+
+          {selectedQuadras.length === 0 && (
             <div className="form-hint">
-              <p>⚠️ Desenhe um polígono no mapa antes de salvar</p>
+              <p>⚠️ Selecione pelo menos uma quadra no mapa antes de salvar</p>
             </div>
           )}
         </div>
@@ -99,7 +177,11 @@ export default function CreateCardModal({
           <button className="btn-cancel" onClick={handleCancel}>
             Cancelar
           </button>
-          <button className="btn-save" onClick={handleSave}>
+          <button 
+            className="btn-save" 
+            onClick={handleSave}
+            disabled={selectedQuadras.length === 0}
+          >
             Criar Cartão
           </button>
         </div>

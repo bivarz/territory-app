@@ -171,6 +171,160 @@
   opacity: 0.7;
 }
 
+.selection-controls {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  padding: 12px 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  min-width: 280px;
+  max-width: 320px;
+  max-height: 70vh;
+  overflow-y: auto;
+  transition: all 0.3s ease;
+}
+
+.selection-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.selection-info h4 {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.selection-info p {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.selected-quadras-list {
+  margin: 6px 0;
+}
+
+.selected-quadras-list p {
+  font-size: 11px;
+  font-weight: 500;
+  margin: 4px 0 4px 0;
+  color: var(--color-text-muted);
+}
+
+.selected-quadras-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.selected-quadras-list ul::-webkit-scrollbar {
+  width: 4px;
+}
+
+.selected-quadras-list ul::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 2px;
+}
+
+.selected-quadras-list ul::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 2px;
+}
+
+.selected-quadras-list ul::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.selected-quadras-list li {
+  padding: 4px 6px;
+  margin: 2px 0;
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  transition: background 0.2s;
+}
+
+.selected-quadras-list li:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.selected-quadras-list li button {
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  padding: 2px 6px;
+  cursor: pointer;
+  font-size: 10px;
+  transition: background 0.2s;
+  opacity: 0.8;
+}
+
+.selected-quadras-list li button:hover {
+  background: #dc2626;
+  opacity: 1;
+}
+
+.btn-create-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: var(--color-accent);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex: 1;
+}
+
+.btn-create-card:hover:not(:disabled) {
+  background: var(--color-accent-hover, #2563eb);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.btn-create-card:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-cancel-selection {
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--color-text);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex: 1;
+}
+
+.btn-cancel-selection:hover {
+  background: rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
 @media (max-width: 768px) {
   .editor-sidebar {
     width: 100%;
@@ -179,6 +333,33 @@
 
   .editor-content {
     flex-direction: column;
+  }
+
+  .selection-controls {
+    bottom: 10px;
+    right: 10px;
+    left: auto;
+    transform: none;
+    padding: 10px 12px;
+    min-width: 250px;
+    max-width: calc(100% - 20px);
+  }
+
+  .selection-info {
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+  }
+
+  .btn-create-card,
+  .btn-cancel-selection {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .selection-controls {
+    min-width: auto;
+    max-width: calc(100% - 20px);
   }
 }
 
