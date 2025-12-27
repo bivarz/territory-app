@@ -120,8 +120,37 @@
   border-color: var(--color-accent);
 }
 
+.tool-button.active {
+  background: var(--color-accent);
+  color: white;
+  border-color: var(--color-accent);
+}
+
 .group-list {
   min-height: 100px;
+}
+
+.card-info {
+  padding: 12px;
+  background: var(--color-bg-secondary);
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+}
+
+.card-info p {
+  margin: 4px 0;
+  font-size: 14px;
+  color: var(--color-text);
+}
+
+.card-info p:first-child {
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.card-details {
+  color: var(--color-text-muted);
+  font-size: 13px;
 }
 
 .empty-state {
@@ -172,134 +201,102 @@
 }
 
 .selection-controls {
-  position: absolute;
+  position: fixed;
   bottom: 20px;
   right: 20px;
-  z-index: 1000;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--color-border);
   border-radius: 12px;
-  padding: 12px 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 16px;
   min-width: 280px;
-  max-width: 320px;
-  max-height: 70vh;
+  max-width: 350px;
+  max-height: 500px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
   overflow-y: auto;
-  transition: all 0.3s ease;
 }
 
-.selection-info {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.selection-info h4 {
+.selection-info h3 {
   margin: 0 0 8px 0;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--color-text);
 }
 
 .selection-info p {
-  margin: 0;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--color-text);
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  color: var(--color-text-muted);
 }
 
 .selected-quadras-list {
-  margin: 6px 0;
-}
-
-.selected-quadras-list p {
-  font-size: 11px;
-  font-weight: 500;
-  margin: 4px 0 4px 0;
-  color: var(--color-text-muted);
+  margin: 12px 0;
+  max-height: 200px;
+  overflow-y: auto;
 }
 
 .selected-quadras-list ul {
   list-style: none;
   padding: 0;
   margin: 0;
-  max-height: 200px;
-  overflow-y: auto;
-}
-
-.selected-quadras-list ul::-webkit-scrollbar {
-  width: 4px;
-}
-
-.selected-quadras-list ul::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.05);
-  border-radius: 2px;
-}
-
-.selected-quadras-list ul::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 2px;
-}
-
-.selected-quadras-list ul::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.3);
 }
 
 .selected-quadras-list li {
-  padding: 4px 6px;
-  margin: 2px 0;
-  background: rgba(0, 0, 0, 0.03);
-  border-radius: 4px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 11px;
-  transition: background 0.2s;
-}
-
-.selected-quadras-list li:hover {
-  background: rgba(0, 0, 0, 0.06);
+  padding: 8px 12px;
+  margin-bottom: 4px;
+  background: var(--color-bg-secondary);
+  border-radius: 6px;
+  font-size: 13px;
 }
 
 .selected-quadras-list li button {
-  background: #ef4444;
-  color: white;
+  background: none;
   border: none;
-  border-radius: 3px;
-  padding: 2px 6px;
   cursor: pointer;
-  font-size: 10px;
-  transition: background 0.2s;
-  opacity: 0.8;
-}
-
-.selected-quadras-list li button:hover {
-  background: #dc2626;
-  opacity: 1;
-}
-
-.btn-create-card {
+  color: var(--color-error, #ef4444);
+  padding: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 8px 12px;
-  background: var(--color-accent);
-  color: white;
-  border: none;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.selected-quadras-list li button:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.selection-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.btn-create-card,
+.btn-cancel-selection {
+  flex: 1;
+  padding: 8px 16px;
   border-radius: 6px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
-  flex: 1;
+  border: 1px solid var(--color-border);
+}
+
+.btn-create-card {
+  background: var(--color-accent);
+  color: white;
+  border-color: var(--color-accent);
 }
 
 .btn-create-card:hover:not(:disabled) {
   background: var(--color-accent-hover, #2563eb);
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-color: var(--color-accent-hover, #2563eb);
 }
 
 .btn-create-card:disabled {
@@ -308,21 +305,12 @@
 }
 
 .btn-cancel-selection {
-  padding: 8px 12px;
-  background: rgba(0, 0, 0, 0.05);
+  background: var(--color-bg-secondary);
   color: var(--color-text);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-  flex: 1;
 }
 
 .btn-cancel-selection:hover {
-  background: rgba(0, 0, 0, 0.1);
-  transform: translateY(-1px);
+  background: var(--color-bg);
 }
 
 @media (max-width: 768px) {
@@ -338,28 +326,176 @@
   .selection-controls {
     bottom: 10px;
     right: 10px;
-    left: auto;
-    transform: none;
-    padding: 10px 12px;
-    min-width: 250px;
-    max-width: calc(100% - 20px);
-  }
-
-  .selection-info {
-    flex-direction: column;
-    gap: 12px;
-    width: 100%;
-  }
-
-  .btn-create-card,
-  .btn-cancel-selection {
-    width: 100%;
-    justify-content: center;
-  }
-  
-  .selection-controls {
+    left: 10px;
+    max-width: none;
     min-width: auto;
-    max-width: calc(100% - 20px);
   }
+}
+
+.cards-list-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.cards-list-content {
+  background: var(--color-surface);
+  border-radius: 12px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.cards-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.cards-list-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.cards-list-header .modal-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.cards-list-header .modal-close:hover {
+  background: var(--color-bg-secondary);
+  color: var(--color-text);
+}
+
+.cards-list-body {
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.cards-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.card-item {
+  padding: 16px;
+  background: var(--color-bg-secondary);
+  border: 2px solid var(--color-border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  position: relative;
+}
+
+.card-item:hover {
+  background: var(--color-bg);
+  border-color: var(--color-accent);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.card-item.selected {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: white;
+}
+
+.card-item.selected .card-item-info h3,
+.card-item.selected .card-item-info p {
+  color: white;
+}
+
+.card-item-info h3 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.card-item-info p {
+  margin: 4px 0;
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+
+.card-item-id {
+  font-family: monospace;
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.card-item-bairro {
+  font-size: 13px;
+}
+
+.card-item-quadras {
+  font-weight: 500;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border);
+}
+
+.card-item-delete {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 6px;
+  padding: 8px;
+  cursor: pointer;
+  color: #ef4444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.card-item-delete:hover {
+  background: #ef4444;
+  color: white;
+  border-color: #ef4444;
+  transform: scale(1.05);
+}
+
+.card-item.selected .card-item-delete {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: white;
+}
+
+.card-item.selected .card-item-delete:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
 }
 

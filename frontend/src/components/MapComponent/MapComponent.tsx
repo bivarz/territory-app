@@ -32,6 +32,10 @@ interface MapComponentProps {
   isGPSActive?: boolean;
   polygonToFocus?: PolygonFeature | null;
   highlightedPolygonId?: string | null;
+  isSelectionMode?: boolean;
+  selectedQuadraIds?: Set<string>;
+  unavailableQuadraIds?: Set<string>;
+  quadraCardColors?: Record<string, { fill: string; stroke: string }>;
 }
 
 const getColorByStatus = (
@@ -438,9 +442,39 @@ export default function MapComponent({
   isGPSActive = false,
   polygonToFocus = null,
   highlightedPolygonId = null,
+  isSelectionMode = false,
+  selectedQuadraIds = new Set(),
+  unavailableQuadraIds = new Set(),
+  quadraCardColors = {},
 }: MapComponentProps) {
   const geoJsonRef = useRef<L.GeoJSON>(null);
   const [gpsPosition, setGpsPosition] = useState<[number, number] | null>(null);
+  const selectedQuadraIdsRef = useRef<Set<string>>(selectedQuadraIds);
+  const unavailableQuadraIdsRef = useRef<Set<string>>(unavailableQuadraIds);
+  const isSelectionModeRef = useRef<boolean>(isSelectionMode);
+  const onPolygonClickRef = useRef<(featureId: string) => void>(onPolygonClick);
+  const quadraCardColorsRef = useRef<Record<string, { fill: string; stroke: string }>>(quadraCardColors);
+
+  // Atualiza refs quando props mudam
+  useEffect(() => {
+    selectedQuadraIdsRef.current = selectedQuadraIds;
+  }, [selectedQuadraIds]);
+
+  useEffect(() => {
+    unavailableQuadraIdsRef.current = unavailableQuadraIds;
+  }, [unavailableQuadraIds]);
+
+  useEffect(() => {
+    isSelectionModeRef.current = isSelectionMode;
+  }, [isSelectionMode]);
+
+  useEffect(() => {
+    onPolygonClickRef.current = onPolygonClick;
+  }, [onPolygonClick]);
+
+  useEffect(() => {
+    quadraCardColorsRef.current = quadraCardColors;
+  }, [quadraCardColors]);
 
   useEffect(() => {
     // Carrega o GeoJSON inicial
@@ -450,79 +484,119 @@ export default function MapComponent({
   }, [geoJsonData, setGeoJsonData]);
 
   // Atualiza os estilos quando o geoJsonData, isEditMode ou highlightedPolygonId muda
+  // IMPORTANTE: Usa a função style() para garantir que as cores dos cartões sejam aplicadas corretamente
   useEffect(() => {
-    if (geoJsonData && geoJsonRef.current) {
-      console.log(
-        "Atualizando estilos, highlightedPolygonId:",
-        highlightedPolygonId
-      );
+    if (geoJsonData && geoJsonRef.current && !isSelectionModeRef.current) {
       // Cria um mapa de features atualizadas por ID para acesso rápido
       const featuresMap = new Map(
         geoJsonData.features.map((f) => [f.properties.id, f])
       );
 
-      let highlightedCount = 0;
-
       geoJsonRef.current.eachLayer((layer) => {
         if (layer instanceof L.Path) {
           const feature = (layer as any).feature;
           if (feature) {
-            // Busca o feature atualizado no geoJsonData usando o ID do feature original
             const featureId = feature.properties.id;
             const updatedFeature = featuresMap.get(featureId);
 
             if (updatedFeature) {
               // Atualiza o feature no layer com os dados mais recentes
               (layer as any).feature = updatedFeature;
-              const status = updatedFeature.properties.status as PolygonStatus;
-              const colors = getColorByStatus(status);
-
-              // Compara usando o ID do feature original armazenado no layer
-              const isHighlighted = highlightedPolygonId === featureId;
-
-              if (isHighlighted) {
-                highlightedCount++;
-                console.log(
-                  "Destacando polígono:",
-                  featureId,
-                  updatedFeature.properties.nome,
-                  "Status:",
-                  status
-                );
-              }
-
-              layer.setStyle({
-                fillColor: colors.fill,
-                color: isHighlighted ? "#fbbf24" : colors.stroke, // Amarelo para destacar
-                weight: isHighlighted ? 4 : isEditMode ? 3 : 2,
-                opacity: 1,
-                fillOpacity: isHighlighted ? 0.8 : isEditMode ? 0.5 : 0.7,
-                dashArray: isEditMode ? "5, 5" : undefined,
-              });
+              
+              // Usa a função style() para aplicar o estilo correto (incluindo cores dos cartões)
+              const styleProps = style(updatedFeature);
+              layer.setStyle(styleProps);
             }
           }
         }
       });
-
-      if (highlightedPolygonId && highlightedCount === 0) {
-        console.warn(
-          "Aviso: Nenhum polígono foi destacado com o ID:",
-          highlightedPolygonId
-        );
-      }
     }
-  }, [geoJsonData, isEditMode, highlightedPolygonId]);
+  }, [geoJsonData, isEditMode, highlightedPolygonId, isSelectionMode, quadraCardColors]);
 
   const style = (feature: any) => {
+    const featureId = feature.properties.id;
+    const isCard = feature.properties.quadraIds || 
+                   feature.properties.id?.startsWith('card-');
+    
+    // Se for um cartão, usa estilo diferente (verde, tracejado)
+    if (isCard) {
+      return {
+        fillColor: '#22c55e', // Verde
+        color: '#16a34a',
+        weight: 2,
+        opacity: 0.6,
+        fillOpacity: 0.2,
+        dashArray: '10, 5',
+      };
+    }
+
+    // Verifica se a quadra está em um cartão e usa a cor do cartão
+    // IMPORTANTE: Esta verificação deve vir ANTES das verificações de seleção
+    // para garantir que todas as quadras do cartão recebam a cor correta
+    const cardColor = quadraCardColorsRef.current[featureId];
+    
+    // Verifica se está em modo de seleção
+    if (isSelectionModeRef.current) {
+      const isUnavailable = unavailableQuadraIdsRef.current.has(featureId);
+      const isSelected = selectedQuadraIdsRef.current.has(featureId);
+
+      // Se está indisponível, sempre mostra vermelho (prioridade)
+      if (isUnavailable) {
+        return {
+          fillColor: '#ef4444', // Vermelho
+          color: '#dc2626',
+          weight: 2,
+          opacity: 0.5,
+          fillOpacity: 0.3,
+          dashArray: undefined,
+        };
+      }
+
+      // Se está selecionada, mostra azul, mas mantém a cor do cartão se houver
+      if (isSelected) {
+        if (cardColor) {
+          // Mantém a cor do cartão mesmo quando selecionada
+          return {
+            fillColor: cardColor.fill,
+            color: cardColor.stroke,
+            weight: 3,
+            opacity: 1,
+            fillOpacity: 0.6,
+            dashArray: undefined,
+          };
+        }
+        return {
+          fillColor: '#3b82f6', // Azul
+          color: '#2563eb',
+          weight: 3,
+          opacity: 1,
+          fillOpacity: 0.6,
+          dashArray: undefined,
+        };
+      }
+    }
+
+    // Se tem cor de cartão, usa ela (fora do modo de seleção ou quando não está selecionada)
+    if (cardColor) {
+      const isHighlighted = highlightedPolygonId === featureId;
+      return {
+        fillColor: cardColor.fill,
+        color: isHighlighted ? "#fbbf24" : cardColor.stroke,
+        weight: isHighlighted ? 6 : isEditMode ? 3 : 2,
+        opacity: 1,
+        fillOpacity: isHighlighted ? 0.8 : isEditMode ? 0.5 : 0.7,
+        dashArray: isEditMode ? "5, 5" : undefined,
+      };
+    }
+
+    // Estilo padrão baseado no status (apenas se não tiver cor de cartão)
     const status = feature.properties.status as PolygonStatus;
     const colors = getColorByStatus(status);
-    // Usa o ID do feature para comparar, garantindo que seja o polígono correto
-    const featureId = feature.properties.id;
     const isHighlighted = highlightedPolygonId === featureId;
 
     return {
       fillColor: colors.fill,
-      color: isHighlighted ? "#fbbf24" : colors.stroke, // Amarelo para destacar
+      color: isHighlighted ? "#fbbf24" : colors.stroke,
       weight: isHighlighted ? 6 : isEditMode ? 3 : 2,
       opacity: 1,
       fillOpacity: isHighlighted ? 0.8 : isEditMode ? 0.5 : 0.7,
@@ -531,28 +605,190 @@ export default function MapComponent({
   };
 
   const onEachFeature = (feature: any, layer: L.Layer) => {
-    // Armazena o ID do feature para usar no clique
     const featureId = feature.properties.id;
+    const isCard = feature.properties.quadraIds || 
+                   feature.properties.id?.startsWith('card-');
 
-    layer.on({
-      click: () => {
-        console.log("Polygon clicked:", featureId);
-        onPolygonClick(featureId);
-      },
-      mouseover: (e: L.LeafletMouseEvent) => {
-        const layer = e.target as L.Path;
-        layer.setStyle({
-          weight: 4,
-          fillOpacity: 0.9,
-        });
-      },
-      mouseout: (e: L.LeafletMouseEvent) => {
-        const geoJsonLayer = geoJsonRef.current;
-        if (geoJsonLayer) {
-          geoJsonLayer.resetStyle(e.target as L.Path);
-        }
-      },
-    });
+    // Remove event listeners anteriores
+    layer.off('click mouseover mouseout');
+
+    // Cartões não são interativos durante seleção
+    if (isCard && isSelectionMode) {
+      // Não adiciona event listeners para cartões durante seleção
+      return;
+    }
+
+    // Durante seleção, apenas quadras são clicáveis
+    if (isSelectionMode && !isCard) {
+      
+      layer.on({
+        click: (e: L.LeafletMouseEvent) => {
+          e.originalEvent.stopPropagation();
+          e.originalEvent.preventDefault();
+          
+          if (unavailableQuadraIdsRef.current.has(featureId)) {
+            alert('Esta quadra já está em um cartão e não pode ser selecionada.');
+            return;
+          }
+          
+          onPolygonClickRef.current(featureId);
+        },
+        mouseover: (e: L.LeafletMouseEvent) => {
+          const pathLayer = e.target as L.Path;
+          const isSelected = selectedQuadraIdsRef.current.has(featureId);
+          const isUnavailable = unavailableQuadraIdsRef.current.has(featureId);
+          const cardColor = quadraCardColorsRef.current[featureId];
+          
+          if (isUnavailable) {
+            pathLayer.setStyle({
+              weight: 3,
+              fillOpacity: 0.4,
+            });
+          } else if (isSelected) {
+            // Mantém a cor do cartão se houver
+            if (cardColor) {
+              pathLayer.setStyle({
+                fillColor: cardColor.fill,
+                color: cardColor.stroke,
+                weight: 4,
+                fillOpacity: 0.8,
+              });
+            } else {
+              pathLayer.setStyle({
+                weight: 4,
+                fillOpacity: 0.8,
+              });
+            }
+          } else {
+            // Mantém a cor do cartão se houver
+            if (cardColor) {
+              pathLayer.setStyle({
+                fillColor: cardColor.fill,
+                color: cardColor.stroke,
+                weight: 3,
+                fillOpacity: 0.7,
+              });
+            } else {
+              pathLayer.setStyle({
+                weight: 3,
+                fillOpacity: 0.7,
+              });
+            }
+          }
+        },
+        mouseout: (e: L.LeafletMouseEvent) => {
+          const pathLayer = e.target as L.Path;
+          const isSelected = selectedQuadraIdsRef.current.has(featureId);
+          const isUnavailable = unavailableQuadraIdsRef.current.has(featureId);
+          
+          // Verifica se a quadra tem cor de cartão
+          const cardColor = quadraCardColorsRef.current[featureId];
+          
+          if (isUnavailable) {
+            pathLayer.setStyle({
+              fillColor: '#ef4444',
+              color: '#dc2626',
+              weight: 2,
+              opacity: 0.5,
+              fillOpacity: 0.3,
+            });
+          } else if (isSelected) {
+            // Se tem cor de cartão, usa ela mesmo quando selecionado
+            if (cardColor) {
+              pathLayer.setStyle({
+                fillColor: cardColor.fill,
+                color: cardColor.stroke,
+                weight: 3,
+                opacity: 1,
+                fillOpacity: 0.6,
+              });
+            } else {
+              pathLayer.setStyle({
+                fillColor: '#3b82f6',
+                color: '#2563eb',
+                weight: 3,
+                opacity: 1,
+                fillOpacity: 0.6,
+              });
+            }
+          } else {
+            // Se tem cor de cartão, usa ela
+            if (cardColor) {
+              pathLayer.setStyle({
+                fillColor: cardColor.fill,
+                color: cardColor.stroke,
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 0.7,
+              });
+            } else {
+              const status = feature.properties.status as PolygonStatus;
+              const colors = getColorByStatus(status);
+              pathLayer.setStyle({
+                fillColor: colors.fill,
+                color: colors.stroke,
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 0.7,
+              });
+            }
+          }
+        },
+      });
+      return;
+    }
+
+    // Comportamento padrão (modo de edição ou visualização)
+    if (isEditMode || (!isSelectionMode && !isCard)) {
+      layer.on({
+        click: () => {
+          console.log("Polygon clicked:", featureId);
+          onPolygonClickRef.current(featureId);
+        },
+        mouseover: (e: L.LeafletMouseEvent) => {
+          const pathLayer = e.target as L.Path;
+          const cardColor = quadraCardColorsRef.current[featureId];
+          
+          // Mantém a cor do cartão se houver
+          if (cardColor) {
+            pathLayer.setStyle({
+              fillColor: cardColor.fill,
+              color: cardColor.stroke,
+              weight: 4,
+              fillOpacity: 0.9,
+            });
+          } else {
+            pathLayer.setStyle({
+              weight: 4,
+              fillOpacity: 0.9,
+            });
+          }
+        },
+        mouseout: (e: L.LeafletMouseEvent) => {
+          const pathLayer = e.target as L.Path;
+          // Verifica se a quadra tem cor de cartão
+          const cardColor = quadraCardColorsRef.current[featureId];
+          
+          if (cardColor) {
+            // Se tem cor de cartão, restaura ela
+            pathLayer.setStyle({
+              fillColor: cardColor.fill,
+              color: cardColor.stroke,
+              weight: isEditMode ? 3 : 2,
+              opacity: 1,
+              fillOpacity: isEditMode ? 0.5 : 0.7,
+              dashArray: isEditMode ? "5, 5" : undefined,
+            });
+          } else {
+            // Se não tem cor de cartão, usa resetStyle normal
+            const geoJsonLayer = geoJsonRef.current;
+            if (geoJsonLayer) {
+              geoJsonLayer.resetStyle(pathLayer);
+            }
+          }
+        },
+      });
+    }
   };
 
   const dataToUse = geoJsonData || (initialGeoJsonData as GeoJSONData);
@@ -590,11 +826,7 @@ export default function MapComponent({
         <GeoJSON
           key={
             geoJsonData
-              ? JSON.stringify(
-                  geoJsonData.features.map(
-                    (f) => `${f.properties.id}:${f.properties.status}`
-                  )
-                )
+              ? `${isSelectionMode}-${isEditMode}-${Array.from(selectedQuadraIds).sort().join(',')}-${Object.keys(quadraCardColors).length}`
               : "initial"
           }
           ref={geoJsonRef}
