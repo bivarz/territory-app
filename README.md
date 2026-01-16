@@ -1,4 +1,4 @@
-# Mapa de Quadras - Polígonos Interativo 2025
+# Mapa de Quadras - Polígonos Interativo 2026
 
 Aplicação React com TypeScript para visualização e interação com polígonos em um mapa usando GeoJSON.
 
